@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Music player</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"
+      integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w=="
+      crossorigin="anonymous"
+    />
+    <link rel="shortcut icon" href="#" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./assets//css//style.css" />
+    <script src="./assets/js/main.js"></script>
+  </head>
+  <body>
+    <div class="player">
+      <!-- Dashboard -->
+      <div class="dashboard">
+        <!-- Header -->
+        <header>
+          <h4>Now playing:</h4>
+          <h2>String 57th & 9th</h2>
+        </header>
+
+        <!-- CD -->
+        <div class="cd">
+          <div
+            class="cd-thumb"
+            style="
+              background-image: url('https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg');
+            "
+          ></div>
+        </div>
+
+        <!-- Control -->
+        <div class="control">
+          <div class="btn btn-repeat">
+            <i class="fas fa-redo"></i>
+          </div>
+          <div class="btn btn-prev">
+            <i class="fas fa-step-backward"></i>
+          </div>
+          <div class="btn btn-toggle-play">
+            <i class="fas fa-pause icon-pause"></i>
+            <i class="fas fa-play icon-play"></i>
+          </div>
+          <div class="btn btn-next">
+            <i class="fas fa-step-forward"></i>
+          </div>
+          <div class="btn btn-random">
+            <i class="fas fa-random"></i>
+          </div>
+        </div>
+
+        <input
+          id="progress"
+          class="progress"
+          type="range"
+          value="0"
+          step="1"
+          min="0"
+          max="100"
+        />
+
+        <audio id="audio" src=""></audio>
+      </div>
+
+      <!-- Playlist -->
+      <div class="playlist"></div>
+    </div>
+
+    <!-- Design from: https://static.collectui.com/shots/3671744/musicloud-revolutionary-app-for-music-streaming-large -->
+  </body>
+  <script>
+    const $ = document.querySelector.bind(document);
+    const $$ = document.querySelectorAll.bind(document);
+
+    let cd = $(".cd");
+    let heading = $("header h2");
+    let cdThumb = $(".cd-thumb");
+    let audio = $("#audio");
+    let playBtn = $(".btn-toggle-play");
+    let player = $(".player");
+    let progress = $("#progress");
+    let btnNext = $(".btn.btn-next");
+    let btnPrev = $(".btn.btn-prev");
+    let randomBtn = $(".btn.btn-random");
+    let repeatBtn = $(".btn.btn-repeat");
+    const app = {
+      currentIndex: 0,
+      isPlaying: false,
+      isRandom: false,
+      songs: [
+        {
+          name: "Sau Lưng Anh Có Ai Kia",
+          singer: "Thieu Bao Tram",
+          path: "./assets/music/song1.mp3",
+          image: "./assets/img/img1.jpg",
+        },
+        {
+          name: "Đom đóm",
+          singer: "Jack",
+          path: "./assets/music/song2.mp3",
+          image: "./assets/img/img2.jpg",
+        },
+        {
+          name: "Late night",
+          singer: "Cảm xúc",
+          path: "https://data3.chiasenhac.com/downloads/2134/3/2133718/128/Late%20Night%20Melancholy%20-%20Rude%20Boy_%20White.mp3",
+          image: "./assets/img/late_night.jpg",
+        },
+        {
+          name: "Love me like you do",
+          singer: "Ellie Goulding",
+          path: "./assets/music/song4.mp3",
+          image: "./assets/img/img4.jpg",
+        },
+        {
+          name: "Side To Side",
+          singer: "Ariana Grande,Nicki Minaj",
+          path: "./assets/music/song5.mp3",
+          image: "./assets/img/img5.jpg",
+        },
+      ],
+      render: function () {
+        const htmls = this.songs.map((song) => {
+          return `
+              <div class="song">
+                <div
+                  class="thumb"
+                  style="background-image: url('${song.image}');">
+                </div>
+                <div class="body">
+                  <h3 class="title">${song.name}</h3>
+                  <p class="author">${song.singer}</p>
+                </div>
+                <div class="option">
+                  <i class="fas fa-ellipsis-h"></i>
+                </div>
+              </div>
+            `;
+        });
+        $(".playlist").innerHTML = htmls.join("");
+      },
+      defineProperties: function () {
+        Object.defineProperty(this, "currentSong", {
+          get: function () {
+            return this.songs[this.currentIndex];
+          },
+        });
+      },
+      handleEvent: function () {
+        const _this = this;
+        const cdwidth = cd.offsetWidth;
+        //handle CD quay va dung
+        const cdThumdAnimate = cdThumb.animate(
+          [{ transform: "rotate(360deg) " }],
+          {
+            duration: 10000,
+            iterations: Infinity,
+          }
+        );
+        cdThumdAnimate.pause();
+        //handle Scroll
+        document.onscroll = function () {
+          const scrollTop = window.scrollY || documentElement.scrollTop;
+          const newCdwidth = cdwidth - scrollTop;
+          cd.style.width = cdwidth > 0 ? newCdwidth + "px" : 0;
+          cd.style.opacity = newCdwidth / cdwidth;
+        };
+        //handle Play
+        playBtn.onclick = () => {
+          if (_this.isPlaying) {
+            audio.pause();
+          } else {
+            audio.play();
+          }
+        };
+        //khi song dc play
+        audio.onplay = () => {
+          _this.isPlaying = true;
+          player.classList.add("playing");
+          cdThumdAnimate.play();
+        };
+        //khi song bị pause
+        audio.onpause = () => {
+          _this.isPlaying = false;
+          player.classList.remove("playing");
+          cdThumdAnimate.pause();
+        };
+        //khi tien do bai hat chay
+        audio.ontimeupdate = () => {
+          if (audio.duration) {
+            const currentPercent = Math.floor(
+              (audio.currentTime / audio.duration) * 100
+            );
+            progress.value = currentPercent;
+          }
+        };
+        //xu ly khi tua song
+        progress.onchange = (e) => {
+          const seektime = (audio.currentTime / 100) * e.target.value;
+          audio.currentTime = seektime;
+        };
+        //Next bài hát
+        btnNext.onclick = () => {
+          if (_this.isRandom) {
+            _this.playRandomSong();
+          } else {
+            _this.nextSong();
+          }
+          audio.play();
+        };
+        //trở lại bài trc
+        btnPrev.onclick = () => {
+          if (_this.isRandom) {
+            _this.playRandomSong();
+          } else {
+            _this.prevSong();
+          }
+          audio.play();
+        };
+        //random bài hát
+        randomBtn.onclick = (e) => {
+          _this.isRandom = !_this.isRandom;
+          randomBtn.classList.toggle("active", _this.isRandom);
+        };
+      },
+      loadCurrentSong: function () {
+        heading.textContent = this.currentSong.name;
+        cdThumb.style.backgroundImage = `url('${this.currentSong.image}')`;
+        audio.src = this.currentSong.path;
+      },
+      nextSong: function () {
+        this.currentIndex++;
+        if (this.currentIndex >= this.songs.length) {
+          this.currentIndex = 0;
+        }
+        this.loadCurrentSong();
+      },
+      prevSong: function () {
+        this.currentIndex--;
+        if (this.currentIndex < 0) {
+          this.currentIndex = this.songs.length - 1;
+        }
+        this.loadCurrentSong();
+      },
+      playRandomSong: function () {
+        let newIndex = 0;
+        do {
+          newIndex = Math.floor(Math.random() * this.songs.length);
+        } while (newIndex === this.currentIndex);
+        this.currentIndex = newIndex;
+        this.loadCurrentSong();
+      },
+      start: function () {
+        //định nghia thuoc tinh obj
+        this.defineProperties();
+        //lang nghe/ xu ly ev dom
+        this.handleEvent();
+        //tai thong tin bai hat dau tien vao ui khi chay ung dung
+        this.loadCurrentSong();
+        this.render();
+      },
+    };
+    app.start();
+  </script>
+</html>
